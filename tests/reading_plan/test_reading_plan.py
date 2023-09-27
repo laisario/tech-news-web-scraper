@@ -3,9 +3,8 @@ from tech_news.analyzer.reading_plan import (
 )  # noqa: F401, E261, E501
 import pytest
 from tests.assets.news import NEWS
+from unittest.mock import patch
 
-# Passo 1
-from unittest.mock import Mock, patch
 
 NEW_NOTICE_0 = NEWS[0]
 NEW_NOTICE_1 = NEWS[1]
@@ -16,9 +15,7 @@ NEW_NOTICE_13 = NEWS[13]
 def test_reading_plan_group_news():
     reading_plan_service = ReadingPlanService()
 
-    mock_db = Mock(
-        return_value=[NEW_NOTICE_0, NEW_NOTICE_1, NEW_NOTICE_2, NEW_NOTICE_13]
-    )
+    mock_db = [NEW_NOTICE_0, NEW_NOTICE_1, NEW_NOTICE_2, NEW_NOTICE_13]
 
     expected = {
         "readable": [
@@ -42,10 +39,8 @@ def test_reading_plan_group_news():
         ],
         "unreadable": [("noticia_13", 15)],
     }
-    with patch(
-        "tech_news.database",
-        mock_db,
-    ):
+    with patch("tech_news.analyzer.reading_plan.find_news") as find_news_mock:
+        find_news_mock.return_value = mock_db
         result = reading_plan_service.group_news_for_available_time(10)
     assert result == expected
 
