@@ -1,6 +1,7 @@
 import requests
 import time
 from bs4 import BeautifulSoup
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -21,10 +22,10 @@ def fetch(url):
 def scrape_updates(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     posts = soup.find_all("a", {"class": "cs-overlay-link"})
-    news = []
+    news_pages_url = []
     for post in posts:
-        news.append(post["href"])
-    return news
+        news_pages_url.append(post["href"])
+    return news_pages_url
 
 
 # Requisito 3
@@ -42,9 +43,9 @@ def scrape_next_page_link(html_content):
 # Requisito 4
 def scrape_news(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
-    print(soup.find("link", rel="canonical").get("href"), "aaaaaaaaaa")
+    print(soup, "bbbbbbBBBBBBBBBB")
     return {
-        "url": soup.find("link", rel="canonical").get("href"),
+        "url": soup.find("link", rel="canonical")["href"],
         "title": soup.find("h1", {"class": "entry-title"}).string.strip(),
         "timestamp": soup.find("li", {"class": "meta-date"}).string,
         "writer": soup.find("span", {"class": "fn"}).a.string.strip(),
@@ -60,5 +61,25 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
-    raise NotImplementedError
+    URL_BASE = "https://blog.betrybe.com/"
+    next_page_number = 1
+    reportagens = []
+    while len(reportagens) < amount:
+        if next_page_number == 1:
+            next_page_url = URL_BASE
+        else:
+            next_page_url = f"{URL_BASE}page/{next_page_number}/"
+
+        html_content = fetch(next_page_url)
+        urls = scrape_updates(html_content=html_content)
+        for url in urls:
+            page_html = fetch(url)
+            new = scrape_news(page_html)
+            reportagens.append(new)
+
+            if len(reportagens) == amount:
+                break
+
+        next_page_number += 1
+    create_news(reportagens[:amount])
+    return reportagens[:amount]
