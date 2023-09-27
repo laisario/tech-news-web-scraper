@@ -47,7 +47,6 @@ NEWS = [
 def test_reading_plan_group_news():
     reading_plan_service = ReadingPlanService()
 
-
     expected = {
         "readable": [
             {
